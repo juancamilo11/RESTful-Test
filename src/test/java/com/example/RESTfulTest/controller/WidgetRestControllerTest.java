@@ -125,7 +125,7 @@ class WidgetRestControllerTest {
         Widget widgetToUpdate = new Widget(1L,"My widget","This is my widget",5);
         Mockito.doReturn(widgetUpdated).when(service).save(any());
 
-        // Execute the POST request
+        // Execute the PUT request
         mockMvc.perform(put("/rest/widget/1", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(widgetToUpdate)))
@@ -169,7 +169,7 @@ class WidgetRestControllerTest {
 
     //PUT para modificar un elemento que no se encuentra en la base de datos (not found)
     @Test
-    @DisplayName("PUT/rest/widget/{id}")
+    @DisplayName("PUT/rest/widget/{id} - Fail way")
     void testUpdateWidgetNoFound() throws  Exception{
         //Set up our mocked service
         Widget widgetToUpdate = new Widget(1L,"My widget", "Widget description", 1);
@@ -186,5 +186,26 @@ class WidgetRestControllerTest {
     }
 
     //GET para obtener un elemento por ID que se encuentra en la base de datos
+    @Test
+    @DisplayName("GET/widget/{id} - Success way")
+    void testGetWidgetSuccess() throws Exception {
+        // Setup our mocked service
+        Optional<Widget> widget = Optional.of(new Widget(1L,"My widget", "Widget description", 1));
+        doReturn(widget).when(service).findById(1L);
 
+        // Execute the GET request
+        mockMvc.perform(get("/rest/widget/{id}",1L))
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+                // Validate headers
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/1"))
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("My widget")))
+                .andExpect(jsonPath("$.description", is("Widget description")))
+                .andExpect(jsonPath("$.version", is(1)));
+    }
 }
