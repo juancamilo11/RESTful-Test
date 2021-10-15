@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -114,5 +115,60 @@ class WidgetRestControllerTest {
             throw new RuntimeException(e);
         }
     }
+
+
+    @Test
+    @DisplayName("PUT/rest/widget - Success")
+    void testUpdateWidgetSuccesss() throws Exception {
+        //Set up our mocked service
+        Widget widgetUpdated = new Widget(1L,"My sister's widget","This was my widget",6);
+        Widget widgetToUpdate = new Widget(1L,"My widget","This is my widget",5);
+        Mockito.doReturn(widgetUpdated).when(service).save(any());
+
+        // Execute the POST request
+        mockMvc.perform(put("/rest/widget/1", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(widgetToUpdate)))
+
+                // Validate the response code and content type
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+                // Validate headers
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/1"))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"6\""))
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("My sister's widget")))
+                .andExpect(jsonPath("$.description", is("This was my widget")))
+                .andExpect(jsonPath("$.version", is(6)));
+    }
+
+    //PUT para modificar un elemento que se encuentra en la base de datos
+    @Test
+    @DisplayName("PUT/rest/widget - Success way")
+    public void testUpdateWidgetSuccess() throws Exception {
+        //Set up our mocked service
+        Optional<Widget> widgetToUpdate = Optional.of(new Widget(1L,"My widget", "Widget description", 1));
+        Widget widgetUpdated = new Widget(1l,"My widget's new name", "My widget's new description", 2);
+
+
+        Mockito.doReturn(widgetToUpdate).when(service).findById(1L);
+        Mockito.doReturn(widgetUpdated).when(service).save(any());
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/widget/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(widgetToUpdate))
+
+                // Validate the response code and content type
+                .header(HttpHeaders.IF_MATCH,"1"))
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    //PUT para modificar un elemento que no se encuentra en la base de datos (not found)
+
+    //GET para obtener un elemento por ID que se encuentra en la base de datos
 
 }
