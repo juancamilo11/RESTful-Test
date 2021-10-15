@@ -168,6 +168,22 @@ class WidgetRestControllerTest {
     }
 
     //PUT para modificar un elemento que no se encuentra en la base de datos (not found)
+    @Test
+    @DisplayName("PUT/rest/widget/{id}")
+    void testUpdateWidgetNoFound() throws  Exception{
+        //Set up our mocked service
+        Widget widgetToUpdate = new Widget(1L,"My widget", "Widget description", 1);
+        doReturn(Optional.empty()).when(service).findById(1L);
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/widget/{id}", 1L)
+                .header(HttpHeaders.IF_MATCH,"1")
+                .content(asJsonString(widgetToUpdate))
+                .contentType(MediaType.APPLICATION_JSON))
+
+                // Validate the response code and content type
+                .andExpect(status().is4xxClientError());
+    }
 
     //GET para obtener un elemento por ID que se encuentra en la base de datos
 
