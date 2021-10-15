@@ -159,11 +159,11 @@ class WidgetRestControllerTest {
 
         // Execute the PUT request
         mockMvc.perform(put("/rest/widget/{id}", 1L)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(widgetToUpdate))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(asJsonString(widgetToUpdate))
 
-                // Validate the response code and content type
-                .header(HttpHeaders.IF_MATCH,"1"))
+                        // Validate the response code and content type
+                        .header(HttpHeaders.IF_MATCH,"1"))
                 .andExpect(status().is2xxSuccessful());
     }
 
